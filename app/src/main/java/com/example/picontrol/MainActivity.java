@@ -10,6 +10,8 @@ import android.os.Looper;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -54,9 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
         Button btn1 = findViewById(R.id.BlindButton1);
         Button btn2 = findViewById(R.id.BlindButton2);
-
-        Spinner spinner1 = findViewById(R.id.OpenTimeSpinner);
-        Spinner spinner2 = findViewById(R.id.CloseTimeSpinner);
 
 
         // Handles the action when button 1 is pressed

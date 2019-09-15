@@ -54,12 +54,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btn1 = findViewById(R.id.BlindButton1);
-        Button btn2 = findViewById(R.id.BlindButton2);
+        Button blind1btn = findViewById(R.id.BlindButton1);
+        Button blind2btn = findViewById(R.id.BlindButton2);
 
 
-        // Handles the action when button 1 is pressed
-        btn1.setOnClickListener(new View.OnClickListener() {
+        // Handles the action when Blind 1 button is pressed
+        blind1btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Button 2
-        btn2.setOnClickListener(new View.OnClickListener() {
+        // Blind 2 button
+        blind2btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 

@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -29,9 +30,111 @@ import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
 
+    static boolean canPressBtn1 = true;
+    static boolean canPressBtn2 = true;
+    static boolean canPressBtn3 = true;
+    static boolean tbtn1s = false;
+
+    // For AP pi
+//    String host = "192.168.0.1";
+//    String password = "colombiano";
+    static boolean tbtn2s = false;
+    static boolean tbtn3s = false;
+    // For handling new threads
+    private static Handler nHandler = new Handler(Looper.getMainLooper());
+    String user = "pi";
+    String host = "192.168.1.32";
+    String password = "Mauricio1";
+    String programPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Button btn1 = findViewById(R.id.BlindButton1);
+        Button btn2 = findViewById(R.id.BlindButton2);
+
+        Spinner spinner1 = findViewById(R.id.OpenTimeSpinner);
+        Spinner spinner2 = findViewById(R.id.CloseTimeSpinner);
+
+
+        // Handles the action when button 1 is pressed
+        btn1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                programPath = "/home/pi/Desktop/blindControl 0";
+
+
+                System.out.println("****************************ACTIVATING BLINDS****************************");
+                Toast.makeText(MainActivity.this, "Blind 1 Activated", Toast.LENGTH_SHORT).show();
+                new AsyncTask<Integer, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Integer... params) {
+                        System.out.println("BUTTON 1 PRESSED");
+
+                        connectToPi();
+                        return null;
+                    }
+                }.execute(1);
+
+            }
+        });
+
+        // Button 2
+        btn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                programPath = "/home/pi/Desktop/blindControl 1";
+
+                Toast.makeText(MainActivity.this, "Blind 2 Activated", Toast.LENGTH_SHORT).show();
+                System.out.println("BUTTON 2 PRESSED");
+
+                new AsyncTask<Integer, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Integer... params) {
+                        System.out.println("BUTTON 2 PRESSED");
+
+                        connectToPi();
+                        return null;
+                    }
+                }.execute(1);
+
+            }
+        });
+  }
+
+    /**
+     * This method handles making the connection to the pi via SSH. Both the phone and the pi
+     * must be connected to the same network (wifi) for this to work.
+     */
+    public void connectToPi() {
+
+        try {
+            JSch jsch = new JSch();
+            Session session = jsch.getSession(user, host);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+            Channel channel = session.openChannel("exec");
+//            ((ChannelExec) channel).setCommand("/home/pi/Desktop/openBlinds");
+
+            // For AP pi
+            ((ChannelExec) channel).setCommand(programPath);
+            channel.connect();
+            try {
+                Thread.sleep(1000);
+            } catch (Exception ee) {
+                System.out.println("ERROR: CONNECTION NOT ESTABLISHED***");
+            }
+            channel.disconnect();
+            session.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+
 }

@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -26,26 +28,16 @@ import com.jcraft.jsch.Session;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
 
-    static boolean canPressBtn1 = true;
-    static boolean canPressBtn2 = true;
-    static boolean canPressBtn3 = true;
-    static boolean tbtn1s = false;
-
-    // For AP pi
-//    String host = "192.168.0.1";
-//    String password = "colombiano";
-    static boolean tbtn2s = false;
-    static boolean tbtn3s = false;
-    // For handling new threads
-    private static Handler nHandler = new Handler(Looper.getMainLooper());
     String user = "pi";
-    String host = "192.168.1.32";
+    String host = "192.168.1.201";
     String password = "Mauricio1";
     String programPath;
 
@@ -54,8 +46,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final EditText openTimeInput = findViewById(R.id.OpenTime);
+        final EditText closeTimeInput = findViewById(R.id.CloseTime);
+
+
         Button blind1btn = findViewById(R.id.BlindButton1);
         Button blind2btn = findViewById(R.id.BlindButton2);
+        Button submitBtn = findViewById(R.id.SubmitButton);
+
+        final CheckBox monCheck = findViewById(R.id.MonCheckBox);
+        final CheckBox tueCheck = findViewById(R.id.TuesCheckBox);
+        final CheckBox wedCheck = findViewById(R.id.WedCheckBox);
+        final CheckBox thuCheck = findViewById(R.id.ThursCheckBox);
+        final CheckBox friCheck = findViewById(R.id.FriCheckBox);
+        final CheckBox satCheck = findViewById(R.id.SatCheckBox);
+        final CheckBox sunCheck = findViewById(R.id.SunCheckBox);
+
 
 
         // Handles the action when Blind 1 button is pressed
@@ -103,6 +109,35 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        // Handles the action when Blind 1 button is pressed
+        submitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CheckBox[] checkBoxes = {monCheck, tueCheck, wedCheck, thuCheck, friCheck, satCheck, sunCheck};
+
+                int openTime = Integer.valueOf(openTimeInput.getText().toString());
+                int closeTime = Integer.valueOf(closeTimeInput.getText().toString());
+
+                String args = generateArgs(checkBoxes);
+                args = args + openTime + " ";
+                args = args + closeTime;
+
+                programPath = "sudo python -u /home/pi/Desktop/BlindsScheduler.py " + args;
+                System.out.println(programPath);
+                Toast.makeText(MainActivity.this, "Schedule Changed!", Toast.LENGTH_SHORT).show();
+                new AsyncTask<Integer, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Integer... params) {
+                        System.out.println("SUBMIT PRESSED");
+
+                        connectToPi();
+                        return null;
+                    }
+                }.execute(1);
+
+            }
+        });
   }
 
     /**
@@ -122,7 +157,30 @@ public class MainActivity extends AppCompatActivity {
 
             // For AP pi
             ((ChannelExec) channel).setCommand(programPath);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream(), "utf8"));
+            OutputStream out = channel.getOutputStream();
+
             channel.connect();
+
+            String line = null;
+            while (true) {
+                line = in.readLine();
+                if(line != null){
+                    System.out.println(line);
+                }else{
+                    if(channel.isClosed()){
+                        System.out.println("退出状态" + channel.getExitStatus());
+                        break;
+                    }else{
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
             try {
                 Thread.sleep(1000);
             } catch (Exception ee) {
@@ -135,5 +193,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private String generateArgs(CheckBox[] checkBoxes){
+        String args = "";
+
+        for(int i = 0; i < 7; i++){
+            if (checkBoxes[i].isChecked())
+                args = args + "1 ";
+            else
+                args = args + "0 ";
+        }
+
+        return args;
+    }
 
 }
